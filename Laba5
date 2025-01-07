@@ -1,0 +1,118 @@
+namespace Lab5
+{
+    //Proxy
+    public class Real
+    {
+        public string Action()
+        {
+            return "Step";
+        }
+    }
+
+    public class Proxy //Класс-прокси, который контролирует доступ к Real
+    {
+        private Real _real;
+
+        public Proxy(Real real)
+        {
+            _real = real;
+        }
+
+        public string Action()
+        {
+            Console.WriteLine("First step");
+            return _real.Action();
+        }
+    }
+
+
+    //Bridge
+    public interface WayChoosing
+    {
+        string Way();
+    }
+
+    public class WayA : WayChoosing
+    {
+        public string Way()
+        {
+            return "A";
+        }
+    }
+
+    public class WayB : WayChoosing
+    {
+        public string Way()
+        {
+            return "B";
+        }
+    }
+
+    public class Bridge //Класс-мост, который абстрагирует выбор между WayA и WayB
+    {
+        private WayChoosing _w;
+
+        public Bridge(WayChoosing w)
+        {
+            _w = w;
+        }
+
+        public string Choise()
+        {
+            return $"Choose: {_w.Way()}";
+        }
+    }
+
+
+    //Adapter
+    public class Old
+    {
+        public string OldAction()
+        {
+            return "Old method";
+        }
+    }
+
+    public class Adapter //Класс, который адаптирует Old к нужному интерфейсу
+    {
+        private Old _oldObj;
+
+        public Adapter(Old oldObj)
+        {
+            _oldObj = oldObj;
+        }
+
+        public string Action()
+        {
+            return _oldObj.OldAction();
+        }
+    }
+
+
+    public class Example
+    {
+        public static void Main(string[] args)
+        {
+            //Proxy
+            Real real = new Real();
+            Proxy proxy = new Proxy(real);
+            Console.WriteLine(proxy.Action());
+
+            //Bridge
+            WayA a = new WayA();
+            WayB b = new WayB();
+
+            Bridge bridgeA = new Bridge(a);
+            Bridge bridgeB = new Bridge(b);
+
+            Console.WriteLine(bridgeA.Choise());
+            Console.WriteLine(bridgeB.Choise());
+
+            //Adapter
+            Old old = new Old();
+            Adapter adapter = new Adapter(old);
+            Console.WriteLine(adapter.Action());
+        }
+    }
+
+}
