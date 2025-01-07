@@ -1,0 +1,233 @@
+using System;
+
+namespace Lab3
+{
+    // Singleton 
+    public class Phone
+    {
+        private static Phone instance = null;
+        public string Model { get; private set; }
+        private Phone(string model)
+        {
+            Model = model;
+        }
+        public static Phone getInstance(string model)
+        {
+            instance = new Phone(model);
+            return instance;
+        }
+    }
+
+    // Factory method
+    public interface FPhone
+    {
+        string getModel();
+    }
+    public class Iphone : FPhone
+    {
+        public string getModel()
+        {
+            return "Iphone";
+        }
+    }
+
+    public class Samsung : FPhone
+    {
+        public string getModel()
+        {
+            return "Samsung";
+        }
+    }
+    public abstract class PhoneFactory
+    {
+        public abstract FPhone CreatePhone();
+    }
+    public class IphoneFactory : PhoneFactory
+    {
+        public override FPhone CreatePhone()
+        {
+            return new Iphone();
+        }
+    }
+
+    public class SamsungFactory : PhoneFactory
+    {
+        public override FPhone CreatePhone()
+        {
+            return new Samsung();
+        }
+    }
+    // Abstract factory
+    public interface APhone
+    {
+        string GetModel();
+        string GetColor();
+    }
+
+    public interface AShell
+    {
+        double GetSize();
+        int GetCameras();
+    }
+    public class AIphone : APhone
+    {
+        public string GetModel() => "Iphone";
+        public string GetColor() => "Gold";
+    }
+
+    public class ASamsung : APhone
+    {
+        public string GetModel() => "Samsung";
+        public string GetColor() => "White";
+    }
+
+    public class ABigShell : AShell
+    {
+        public double GetSize() => 6.7;
+        public int GetCameras() => 3;
+    }
+
+    public class AStandartShell : AShell
+    {
+        public double GetSize() => 5.5;
+        public int GetCameras() => 2;
+
+    }
+    public interface APhoneFactory
+    {
+        APhone CreatePhone();
+        AShell CreateShell();
+    }
+    public class AIphoneFactory : APhoneFactory
+    {
+        public APhone CreatePhone() => new AIphone();
+        public AShell CreateShell() => new ABigShell();
+    }
+
+    public class ASamsungFactory : APhoneFactory
+    {
+        public APhone CreatePhone() => new ASamsung();
+        public AShell CreateShell() => new AStandartShell();
+    }
+
+    // Builder 
+    public class BPhone
+    {
+        public string Model { get; set; }
+        public string Color { get; set; }
+        public string Memory { get; set; }
+
+        public override string ToString()
+        {
+            return $"Model: {Model}, Color: {Color}, Memory: {Memory}";
+        }
+    }
+    public interface BPhoneBuilder
+    {
+        void BSetModel();
+        void BSetColor();
+        void BSetMemory();
+        BPhone BGetPhone();
+    }
+    public class BIphoneBuilder : BPhoneBuilder
+    {
+        private BPhone phone = new BPhone();
+
+        public void BSetModel() => phone.Model = "Iphone";
+        public void BSetColor() => phone.Color = "Gold";
+        public void BSetMemory() => phone.Memory = "128 Гб";
+
+        public BPhone BGetPhone() => phone;
+    }
+
+    public class BSamsungBuilder : BPhoneBuilder
+    {
+        private BPhone phone = new BPhone();
+
+        public void BSetModel() => phone.Model = "Samsung";
+        public void BSetColor() => phone.Color = "White";
+        public void BSetMemory() => phone.Memory = "256 Гб";
+
+        public BPhone BGetPhone() => phone;
+    }
+
+    public interface BPhoneFactory
+    {
+        BPhoneBuilder CreatePhoneBuilder();
+    }
+
+    public class BIphoneFactory : BPhoneFactory
+    {
+        public BPhoneBuilder CreatePhoneBuilder()
+        {
+            return new BIphoneBuilder();
+        }
+    }
+
+    public class BSamsungFactory : BPhoneFactory
+    {
+        public BPhoneBuilder CreatePhoneBuilder()
+        {
+            return new BSamsungBuilder();
+        }
+    }
+    public class BPhoneDirector
+    {
+        public void Construct(BPhoneBuilder phoneBuilder)
+        {
+            phoneBuilder.BSetModel();
+            phoneBuilder.BSetColor();
+            phoneBuilder.BSetMemory();
+        }
+    }
+
+
+
+    internal class Lab3
+    {
+        public static void Main()
+        {
+            // Singleton
+            Phone myPhone = Phone.getInstance("Iphone");
+            Console.WriteLine(myPhone.Model);
+
+            Phone anotherPhone = Phone.getInstance("Samsung");
+            Console.WriteLine(anotherPhone.Model);
+
+            // Factory method
+            PhoneFactory iphoneFactory = new IphoneFactory();
+            FPhone iphone = iphoneFactory.CreatePhone();
+            Console.WriteLine(iphone.getModel());
+
+            PhoneFactory samsungFactory = new SamsungFactory();
+            FPhone samsung = samsungFactory.CreatePhone();
+            Console.WriteLine(samsung.getModel());
+
+            // Abstract factorya
+            APhoneFactory aiphoneFactory = new AIphoneFactory();
+            APhone aiphone = aiphoneFactory.CreatePhone();
+            AShell aiphoneshell = aiphoneFactory.CreateShell();
+            Console.WriteLine($"Модель: {aiphone.GetModel()}, Цвет: {aiphone.GetColor()}, Размер: {aiphoneshell.GetSize()}'', Количество камер: {aiphoneshell.GetCameras()}");
+
+            APhoneFactory asamsungFactory = new ASamsungFactory();
+            APhone asamsung = asamsungFactory.CreatePhone();
+            AShell asamsungshell = asamsungFactory.CreateShell();
+            Console.WriteLine($"Модель: {asamsung.GetModel()}, Цвет: {asamsung.GetColor()}, Размер: {asamsungshell.GetSize()}'', Количество камер: {asamsungshell.GetCameras()}");
+
+            // Builder 
+            BPhoneDirector director = new BPhoneDirector();
+            BPhoneFactory biphoneFactory = new BIphoneFactory();
+            BPhoneBuilder biphoneBuilder = biphoneFactory.CreatePhoneBuilder();
+            director.Construct(biphoneBuilder);
+            BPhone biphone = biphoneBuilder.BGetPhone();
+            Console.WriteLine(biphone);
+
+            BPhoneFactory bsamsungFactory = new BSamsungFactory();
+            BPhoneBuilder bsamsungBuilder = bsamsungFactory.CreatePhoneBuilder();
+            director.Construct(bsamsungBuilder);
+            BPhone bsamsung = bsamsungBuilder.BGetPhone();
+            Console.WriteLine(bsamsung);
+
+        }
+    }
+}
