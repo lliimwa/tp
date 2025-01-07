@@ -1,0 +1,201 @@
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Lab4
+{
+
+    //Стратегия
+    public interface Strategy 
+    {
+        int Sign(int n1, int n2);
+    }
+
+    public class Plus : Strategy // Класс для сложения
+    {
+        public int Sign(int n1, int n2)
+        {
+            return n1 + n2;
+        }
+    }
+
+    public class Minus : Strategy // Класс для вычитания
+    {
+        public int Sign(int n1, int n2)
+        {
+            return n1 - n2;
+        }
+    }
+
+    public class Instance
+    {
+        private Strategy Strategy;
+
+        public Instance(Strategy strategy)
+        {
+            Strategy = strategy; 
+        }
+
+        public int ExecuteStrategy(int n1, int n2) // Метод для выполнения стратегии
+        {
+            return Strategy.Sign(n1, n2);
+        }
+    }
+
+
+    // Обработчик
+    public abstract class Handler 
+    {
+        protected Handler successor;
+
+        public Handler(Handler successor = null)
+        {
+            this.successor = successor;
+        }
+
+        public abstract void Handle(string request); // Метод для обработки запроса
+    }
+
+    public class Handler1 : Handler
+    {
+        public Handler1(Handler successor = null) : base(successor) { }
+
+        public override void Handle(string request) // Реализация метода для обработки запроса
+        {
+            if (request == ">") 
+            {
+                Console.WriteLine("1.Больше");
+            }
+            else if (successor != null)
+            {
+                successor.Handle(request); // Передача запроса следующему обработчику, если этот не справился
+            }
+
+        }
+    }
+
+    public class Handler2 : Handler
+    {
+        public Handler2(Handler successor = null) : base(successor) { }
+
+        public override void Handle(string request)
+        {
+            if (request == "<")
+            {
+                Console.WriteLine("2.Меньше");
+            }
+            else if (successor != null)
+            {
+                successor.Handle(request);
+            }
+
+        }
+    }
+
+    public class Handler3 : Handler
+    {
+        public Handler3(Handler successor = null) : base(successor) { }
+
+        public override void Handle(string request)
+        {
+            if (request == "=")
+            {
+                Console.WriteLine("3.Равно");
+            }
+            else if (successor != null)
+            {
+                successor.Handle(request);
+            }
+
+        }
+    }
+
+
+
+    //Итератор
+    public class Iterator<T> : IEnumerator<T>
+    {
+        private readonly List<T> Collection;
+        private int Index = -1;  // Начальное значение -1 для корректной работы Reset()
+
+        public Iterator(List<T> collection)
+        {
+            Collection = collection;
+        }
+
+        public T Current => Collection[Index]; 
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()  // Метод, перемещающий итератор к следующему элементу
+        {
+            Index++;
+            return Index < Collection.Count;
+        }
+
+        public void Reset() // Метод, сбрасывающий итератор в начальное состояние
+        {
+            Index = -1;
+        }
+
+        public void Dispose() { } //Освобождает ресурсы
+    }
+
+    public class Collection<T> : IEnumerable<T>
+    {
+        private readonly List<T> Items = new List<T>();
+
+        public void AddItem(T item)
+        {
+            Items.Add(item);
+        }
+
+        public IEnumerator<T> GetEnumerator() //Возвращает новый итератор для перебора элементов
+        {
+            return new Iterator<T>(Items);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() 
+        {
+            return GetEnumerator();
+        }
+    }
+
+    public class Program
+    {
+        public static void Main()
+        {
+            //Стратегия
+            Instance instance = new Instance(new Plus());
+            Console.WriteLine(instance.ExecuteStrategy(7, 3));
+
+            instance = new Instance(new Minus());
+            Console.WriteLine(instance.ExecuteStrategy(7, 3));
+
+
+            //Обработчик
+            var handler1 = new Handler1(); // Создание экземпляра первого обработчика
+            var handler2 = new Handler2(handler1); // Создание второго обработчика с первым в качестве преемника
+            var handler3 = new Handler3(handler2); 
+
+            handler3.Handle("<"); 
+            handler3.Handle("="); 
+            handler3.Handle("-");
+            handler3.Handle(">"); 
+
+
+            //Итератор
+            var collection = new Collection<string>();
+            collection.AddItem("Понедельник");
+            collection.AddItem("Вторник");
+            collection.AddItem("Среда");
+
+            foreach (var item in collection)
+            {
+                Console.WriteLine(item);
+            }
+
+        }
+    }
+}
