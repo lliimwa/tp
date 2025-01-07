@@ -1,0 +1,71 @@
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DECIMAL
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+
+DATABASE_URL = "postgresql://postgres:password@localhost:5432/mydb"
+engine = create_engine(DATABASE_URL)
+Base = declarative_base()
+
+class Category(Base):
+    __tablename__ = 'categories'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    products = relationship("Product", back_populates="category")
+
+class Product(Base):
+    __tablename__ = 'products'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    price = Column(DECIMAL, nullable=False)
+    category_id = Column(Integer, ForeignKey('categories.id'))
+    category = relationship("Category", back_populates="products")
+
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
+
+def create_category(name):
+    category = Category(name=name)
+    session.add(category)
+    session.commit()
+    return category
+
+def create_product(name, price, category_id):
+    product = Product(name=name, price=price, category_id=category_id)
+    session.add(product)
+    session.commit()
+    return product
+
+# Чтение продуктов по категории
+def get_products_by_category(category_id):
+    return session.query(Product).filter(Product.category_id == category_id).all()
+
+# Обновление категории у продукта
+def update_product_category(product_id, new_category_id):
+    product = session.query(Product).filter(Product.id == product_id).first()
+    if product:
+        product.category_id = new_category_id
+        session.commit()
+
+# Удаление категории и всех связанных продуктов
+def delete_category(category_id):
+    category = session.query(Category).filter(Category.id == category_id).first()
+    if category:
+        session.delete(category)
+        session.commit()
+
+
+if __name__ == "__main__":
+    cat1 = create_category("Electronics")
+
+    # Создание продуктов
+    prod1 = create_product("Smartphone", 699.99, cat1.id)
+    prod2 = create_product("Laptop", 999.99, cat1.id)
+
+    # Чтение продуктов по категории
+    products = get_products_by_category(cat1.id)
+    for product in products:
+        print(f"Product: {product.name}, Price: {product.price}")
+
