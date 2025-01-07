@@ -1,0 +1,156 @@
+using System;
+using static System.Net.Mime.MediaTypeNames;
+
+public abstract class GameObject //основной абстрактный класс в котором создаем поля
+{
+    private int id;
+    private string name;
+    private int x, y;
+
+    public GameObject(int id, string name, int x, int y) //создаем конструктор класса
+    {
+        this.id = id;
+        this.name = name;
+        this.x = x;
+        this.y = y;
+    }
+
+    public int ID() { return id; }// 17 - 20 инициализация полей
+    public string Name() { return name; }
+    public int getX { get { return x; } set { x = value; } } 
+    public int getY { get { return y; } set { y = value; } }
+
+    public void setPosition(int x, int y)// метод для добавляния координат персонажа
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+public abstract class Unit : GameObject // второй основной абстрактный класс (наследование от Gameobject)
+{
+    private float hp;  // количество хп
+    private float damage; // количество урона
+    public Unit(int id, string name, int x, int y, float hp, float damage) : base(id, name, x, y)
+    {
+        this.hp = hp;
+        this.damage = damage;
+    }
+
+    public float GetHp() // инициализация полей, текущее значение хп
+    {
+        return hp;
+    }
+    public bool IsAlive() // проверяем жив ли персонаж или нет
+    {
+        if (hp > 0) { return true; }
+        else { return false; }
+    }
+
+    public void receiveDamage() // метод для получения урона
+    {
+        hp = hp-damage;
+        if (hp < 0) hp = 0; // чтобы не было отрицательного значения хп
+        Console.WriteLine($"Оставшееся хп:{hp}, Нанесенный урон: {damage}");
+    }
+
+    public void Movement() // метод для передвижения
+    {
+        getX = getX + 10;
+        getY = getY + 10;
+    }
+}
+
+public interface Attacker // первый интерфейс для атаки
+{
+    void Attack(Unit unit);
+
+}
+public interface Moveable // второй интерфейс для передвежения 
+{
+    void Moveable(Unit unit);
+}
+public class Archer : Unit, Attacker, Moveable // класс для юнита лучника
+{
+    public void Attack(Unit unit) // метод атаки лучника
+    {
+        unit.receiveDamage();
+    }
+
+    public void Moveable(Unit unit) // перемещение
+    {
+        unit.Movement();
+    }
+
+    public Archer(int id, string name, int x, int y, float hp, float damage) : base(id, name, x, y, hp, damage) { }
+}
+
+public abstract class Building : GameObject // класс для атакующих построек
+{
+    private bool built; // создаем поле для проверки
+
+    public Building(int id, string name, int x, int y, bool built) : base(id, name, x, y)
+    {
+        this.built = built; // состояние постройки
+    }
+
+    public bool getBuilt() { return built; }
+}
+
+public class Fort : Building, Attacker
+{
+    public Fort(int id, string name, int x, int y, bool built) : base(id, name, x, y, built) { }
+
+    public void Attack(Unit unit)
+    {
+        unit.receiveDamage();
+    }
+}
+
+public class MobileHome : Building, Moveable // класс для передвижных построек
+{
+    public MobileHome(int id, string name, int x, int y, bool built) : base(id, name, x, y, built) { }
+
+    public void Moveable(Unit unit)
+    {
+        unit.Movement();
+    }
+}
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        // Создаем лучника
+        Archer archer = new Archer(1, "Лучник", 0, 0, 100, 15);
+
+        // Создаем крепость
+        Fort fort = new Fort(2, "Крепость", 5, 5, true);
+
+        // Создаем передвижной дом
+        MobileHome mobileHome = new MobileHome(3, "Передвижной дом", 10, 10, true);
+
+        // Выводим информацию о начальном положении лучника
+        Console.WriteLine($"Лучник {archer.Name} находится на позиции ({archer.getX}, {archer.getY}) с {archer.GetHp()} HP.");
+
+        // Лучник перемещается
+        Console.WriteLine("Лучник перемещается...");
+        archer.Movement();
+        Console.WriteLine($"Теперь Лучник {archer.Name} находится на позиции ({archer.getX}, {archer.getY}).");
+
+        // Крепость атакует лучника
+        Console.WriteLine("Крепость атакует  Лучника...");
+        fort.Attack(archer);
+        Console.WriteLine($"После атаки у Лучника осталось {archer.GetHp()} HP.");
+
+        // Проверяем построен ли дом
+        Console.WriteLine($"Передвижной дом построен? {mobileHome.getBuilt()}");
+
+        // Передвижной дом перемещается
+        Console.WriteLine("Передвижной дом перемещается...");
+        mobileHome.Moveable(archer);  // Хотя здесь логичнее перемещать сам дом, для примера перемещаем юнит
+        Console.WriteLine($"Теперь Дом находится на позиции ({mobileHome.getX}, {mobileHome.getY}).");
+
+
+    }
+}
